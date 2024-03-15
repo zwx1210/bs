@@ -14,7 +14,7 @@ const rePasswordValid = (rule, value, callback) => {
   if (value == null || value === '') {
     return callback(new Error('请再次确认密码'))
   }
-  if (registerData.password !== value) {
+  if (registerData.value.password !== value) {
     return callback(new Error('两次输入密码不一致'))
   }
 }
@@ -32,6 +32,17 @@ const registerDataRules = ref({
     { validator: rePasswordValid, trigger: 'blur' }
   ]
 })
+//用于注册的事件函数（调用后台接口进行注册）
+import {registerService} from '@/api/user.js'
+const register =async () => {
+  let result =await registerService(registerData.value);//响应式对象获取值的需要.value
+  if (result.code == 0) {
+    alert('注册成功!')
+  } else {
+    alert('注册失败!')
+  }
+
+}
 </script>
 
 <template>
@@ -39,12 +50,12 @@ const registerDataRules = ref({
     <el-col :span="12" class="bg"></el-col>
     <el-col :span="6" :offset="3" class="form">
       <!-- 注册表单 -->
-      <el-form ref="form" size="large" autocomplete="off" v-if="isRegister" :model="registerData">
+      <el-form ref="form" size="large" autocomplete="off" v-if="isRegister" :model="registerData" :rules="registerDataRules">
         <el-form-item>
           <h1>注册</h1>
         </el-form-item>
         <el-form-item prop="username">
-          <el-input :prefix-icon="User" placeholder="请输入用户名" v-model = "registerData.username"></el-input>
+          <el-input :prefix-icon="User" placeholder="请输入用户名" v-model="registerData.username"></el-input>
         </el-form-item>
         <el-form-item prop="password">
           <el-input :prefix-icon="Lock" type="password" placeholder="请输入密码" v-model="registerData.password"></el-input>
@@ -54,7 +65,7 @@ const registerDataRules = ref({
         </el-form-item>
         <!-- 注册按钮 -->
         <el-form-item>
-          <el-button class="button" type="primary" auto-insert-space>
+          <el-button class="button" @click="register" type="primary" auto-insert-space>
             注册
           </el-button>
         </el-form-item>
@@ -70,10 +81,10 @@ const registerDataRules = ref({
           <h1>登录</h1>
         </el-form-item>
         <el-form-item>
-          <el-input :prefix-icon="User" placeholder="请输入用户名"></el-input>
+          <el-input :prefix-icon="User" placeholder="请输入用户名" v-model="registerData.username"></el-input>
         </el-form-item>
         <el-form-item>
-          <el-input name="password" :prefix-icon="Lock" type="password" placeholder="请输入密码"></el-input>
+          <el-input name="password" :prefix-icon="Lock" type="password" placeholder="请输入密码" v-model="registerData.password"></el-input>
         </el-form-item>
         <el-form-item class="flex">
           <div class="flex">
