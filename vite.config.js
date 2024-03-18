@@ -17,7 +17,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'http://localhost:8000', // 后端服务器地址
+        target: 'http://localhost:8000', // 后端服务器地址(注意测试用例与实际程序是不一样的)
         changeOrigin: true, // 是否改变请求域名
         rewrite: (path) => path.replace(/^\/api/, '')//将原有请求路径中的api替换为''
       }
