@@ -1,6 +1,7 @@
 <script setup>
 import { User, Lock } from '@element-plus/icons-vue'
 import { ref } from 'vue'
+import {ElMessage} from "element-plus";
 //控制注册与登录表单的显示， 默认显示注册
 const isRegister = ref(false)
 //用于注册的数据模型
@@ -41,7 +42,8 @@ const register =async () => {
   // } else {
   //   alert('注册失败!')
   // }
-  alert(result.msg?result.msg:'注册成功!')
+  // alert(result.msg?result.msg:'注册成功!')
+  ElMessage.success(result.msg?result.msg:'注册成功!')
 }
 
 
@@ -55,7 +57,8 @@ const clearRegisterData = () => {
 }
 
 import { loginService } from '@/api/user.js'
-
+import{useRouter} from 'vue-router'
+const router =useRouter();
 //用于登录的事件函数
 const login = async () => {
   let result = await loginService(registerData.value)
@@ -64,7 +67,13 @@ const login = async () => {
   // }else{
   //   alert('登录失败!')
   // }
-  alert(result.msg?result.msg:'登录成功!')
+  // alert(result.msg?result.msg:'登录成功!')
+  ElMessage.success(result.msg?result.msg:'登录成功!')
+
+
+  //借助路由完成页面跳转
+   router.push('/')
+
 }
 
 </script>

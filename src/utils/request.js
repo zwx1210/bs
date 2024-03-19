@@ -7,7 +7,7 @@ const baseURL = '/api';
 const instance = axios.create({baseURL})
 
 
-
+import {ElMessage} from "element-plus";
 
 //添加响应拦截器
 instance.interceptors.response.use(
@@ -17,7 +17,8 @@ instance.interceptors.response.use(
             return result.data;
         }
         //代码走到这里，代表业务状态码不是0，本次操作失败
-        alert(result.data.message || '服务异常');
+        // alert(result.data.message || '服务异常');
+        ElMessage.error(result.data.message || '服务异常')
         return Promise.reject(result.data);//异步的状态转化成失败的状态
     },
     err => {
