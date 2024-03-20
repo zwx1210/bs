@@ -55,10 +55,13 @@ const clearRegisterData = () => {
     rePassword: ''
   }
 }
-
+import {useTokenStore} from "@/stores/token.js";
+const tokenStore = useTokenStore();
 import { loginService } from '@/api/user.js'
+
 import{useRouter} from 'vue-router'
 const router =useRouter();
+
 //用于登录的事件函数
 const login = async () => {
   let result = await loginService(registerData.value)
@@ -70,7 +73,8 @@ const login = async () => {
   // alert(result.msg?result.msg:'登录成功!')
   ElMessage.success(result.msg?result.msg:'登录成功!')
 
-
+ //得到的token存储到pinia
+  tokenStore.setToken(result.data);
   //借助路由完成页面跳转
    router.push('/')
 

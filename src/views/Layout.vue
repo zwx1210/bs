@@ -85,7 +85,7 @@ import avatar from '@/assets/default.png'
       </el-header>
       <!-- 中间区域 -->
       <el-main>
-        <div style="width: 1290px; height: 570px;border: 1px solid red;">
+        <div style="width: 1290px; height: 570px;border: 1px solid #ffffff;">
           <router-view></router-view>
         </div>
       </el-main>
@@ -115,6 +115,7 @@ import avatar from '@/assets/default.png'
 
   .el-header {
     background-color: #fff;
+    font-size: 20px;
     display: flex;
     align-items: center;
     justify-content: space-between;
