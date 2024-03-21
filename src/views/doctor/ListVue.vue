@@ -4,7 +4,7 @@ import {
   Delete
 } from '@element-plus/icons-vue'
 import { ref } from 'vue'
-
+import {Plus} from '@element-plus/icons-vue'
 
 const list = ref()
 
@@ -16,12 +16,13 @@ const getList = async () => {
   let result = await listService();
 
   list.value = result.data;
+
   console.log(list.value)
 }
 getList();
 
-//控制添加图像弹窗
-const dialogVisible = ref(false)
+//控制添加图像抽屉
+const visibleDrawer = ref(false)
 
 //添加图像数据模型
 const imageModel = ref({
@@ -44,12 +45,15 @@ const imageRules = {
 
 //访问后台，同步等待异步调用结果
 const addImage = async ()=>{
+  getList()
   let result = addService(imageModel.value);
   ElMessage.success(result.message? result.message:'上传成功')
   //隐藏弹窗
-  dialogVisible.value = false
+   visibleDrawer.value = false
   //再次访问后台接口，查询所有,上传后刷新界面
-  getList()
+   imageModel.value.initialImg=''
+  imageModel.value.title=''
+  imageModel.value.patient=''
 }
 
 
@@ -65,6 +69,7 @@ const deleteImage = (row) => {
       {
         confirmButtonText: '确认',
         cancelButtonText: '取消',
+
         type: 'warning',
       }
   )
@@ -84,6 +89,18 @@ const deleteImage = (row) => {
       })
 }
 
+
+import { useTokenStore } from '@/stores/token.js'
+
+const tokenStore = useTokenStore();
+
+//上传图片成功回调
+const  uploadSuccess = (result) => {
+  //img就是后台响应的数据，格式为：{code:状态码，message：提示信息，data: 图片的存储地址}
+  imageModel.value.initialImg=result.data
+  console.log(result.data)
+}
+
 </script>
 <template>
   <el-card class="page-container">
@@ -91,20 +108,29 @@ const deleteImage = (row) => {
       <div class="header">
         <span >眼底图像数据管理</span>
         <div class="extra">
-          <el-button class="upload" type="primary" @click="dialogVisible=true" >上传眼底图像</el-button>
+          <el-button class="upload" type="primary" @click="visibleDrawer=true" >上传眼底图像</el-button>
         </div>
       </div>
     </template>
     <el-table :data="list" style="width: 100%">
       <el-table-column label="ID"  type="index"> </el-table-column>
-      <el-table-column label="缩略图" prop= "initialImage" ></el-table-column>
+        <el-table-column  label="缩略图" >
+
+            <template #default="scope">
+              <!--调用图片组件 -->
+              <el-image :src="scope.row.initialImg" fit="contain"></el-image>
+            </template>
+
+        </el-table-column>
+
+
       <el-table-column label="名称" prop= "title" ></el-table-column>
       <el-table-column label="病人ID" prop= "patient" ></el-table-column>
       <el-table-column label="诊断状态" prop="diagnosisState" ></el-table-column>
       <el-table-column label="诊断操作" >
-        <template #default="{ row }">
-          <el-button class="diagnosis" type="primary" >查看诊断结果</el-button>
-          <el-button class="result"  type="primary">一键诊断</el-button>
+        <template #default="scope">
+          <el-button class="diagnosis" type="primary" v-if="(scope.row.diagnosisState)==='已诊断'">查看诊断结果</el-button>
+          <el-button class="result"  type="primary"  v-if="(scope.row.diagnosisState)==='未诊断'">一键诊断</el-button>
         </template>
       </el-table-column>
       <el-table-column label="操作" >
@@ -118,25 +144,33 @@ const deleteImage = (row) => {
       </template>
     </el-table>
     <!-- 添加分类弹窗 -->
-    <el-dialog v-model="dialogVisible" title="上传眼底图像" width="30%">
-      <el-form :model="imageModel" :rules="imageRules" label-width="100px" style="padding-right: 30px">
-        <el-form-item label="名称" prop="title">
-          <el-input v-model="imageModel.title" minlength="1" maxlength="10"></el-input>
+    <!-- 抽屉 -->
+    <el-drawer v-model="visibleDrawer" title="上传眼底图像" direction="rtl" size="50%">
+      <!-- 添加文章表单 -->
+      <el-form :model="imageModel" label-width="100px" >
+        <el-form-item label="名称" >
+          <el-input v-model="imageModel.title" placeholder="请输入名称" ></el-input>
         </el-form-item>
-        <el-form-item label="病人ID" prop="patient">
-          <el-input v-model="imageModel.patient" minlength="1" maxlength="15"></el-input>
+        <el-form-item label="患者ID" >
+          <el-input v-model="imageModel.patient" placeholder="请输入患者ID" ></el-input>
         </el-form-item>
-        <el-form-item label="图像文件" prop="initialImage">
-          <el-input v-model="imageModel.initialImg" minlength="1" maxlength="15"></el-input>
+        <el-form-item label="眼底图像文件">
+          <el-upload class="image-uploader" :auto-upload="true" :show-file-list="false"
+          action="/api/upload" name="file" :headers="{'Authorization':tokenStore.token}" :on-success="uploadSuccess">
+            <img v-if="imageModel.initialImg" :src="imageModel.initialImg" class="image"  alt=""/>
+            <el-icon v-else class="image-uploader-icon">
+              <Plus />
+            </el-icon>
+          </el-upload>
         </el-form-item>
       </el-form>
       <template #footer>
-        <span class="dialog-footer">
-            <el-button @click="dialogVisible = false">取消</el-button>
-          <el-button type="primary" @click="addImage"> 确认 </el-button>
+        <span class="drawer-footer">
+            <el-button @click="visibleDrawer = false">取消</el-button>
+            <el-button type="primary" class="ok"  @click="addImage"> 确认 </el-button>
         </span>
       </template>
-    </el-dialog>
+    </el-drawer>
   </el-card>
 </template>
 
@@ -161,14 +195,99 @@ const deleteImage = (row) => {
   .diagnosis{
     border-color: #6C5DD3;
     background-color: #6C5DD3;
+
+  }
+  .diagnosis:hover{
+    border-color: #998bff;
+    background-color: #998bff;
+
   }
   .result{
-    border-color: greenyellow;
-    background-color: greenyellow;
+    border-color: #32AD32;
+    background-color: #32AD32;
+
   }
+  .result:hover{
+    border-color: #96ff53;
+    background-color: #96ff53;
+  }
+
   .delete{
     border-color: red;
     background-color: red;
   }
+  .delete:hover{
+    border-color: #fd9191;
+    background-color: #fd9191;
+  }
 }
+ .ok{
+   border-color: #6C5DD3;
+   background-color: #6C5DD3;
+ }
+ .ok:hover{
+   background-color: #998bff;
+   border-color: #998bff;
+ }
+ .smallImg{
+   width: 17px;
+   height: 178px;
+   display: block;
+ }
+
+
+.el-input.is-disabled .el-input__inner{
+  color: #1636d6;
+}
+/** el-input disabled时的背景和边框*/
+.el-input.is-disabled{
+  background:#dbdada;
+  border: 1px solid #868686;
+}
+/** el-input 正常模式下、readonly模式下的文字颜色 */
+.el-input__inner{
+  color: #0800ff;
+}
+
+
+.image-uploader {
+  :deep() {
+    .image {
+      width: 178px;
+      height: 178px;
+      display: block;
+    }
+
+    .el-upload {
+      border: 1px dashed var(--el-border-color);
+      border-radius: 6px;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      transition: var(--el-transition-duration-fast);
+    }
+
+    .el-upload:hover {
+      border-color: #6C5DD3;
+    }
+
+    .el-icon.image-uploader-icon {
+      font-size: 28px;
+      color: #8c939d;
+      width: 178px;
+      height: 178px;
+      text-align: center;
+    }
+  }
+}
+.editor {
+  width: 100%;
+  :deep(.ql-editor) {
+    min-height: 200px;
+  }
+}
+
+
+
+
 </style>
