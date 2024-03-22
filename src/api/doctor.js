@@ -18,3 +18,10 @@ export const addService = (imageModel) => {
 export const deleteService = (id) => {
     return request.delete('/doctor?id='+id)
 }
+
+//跨组件显示指定图像数据的诊断信息
+
+export const diagnosisService = (id) => {
+
+    return request.get('/doctor/diagnosisResult?id='+id)
+}

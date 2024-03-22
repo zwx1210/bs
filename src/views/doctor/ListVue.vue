@@ -91,6 +91,7 @@ const deleteImage = (row) => {
 
 
 import { useTokenStore } from '@/stores/token.js'
+import router from "@/router/index.js";
 
 const tokenStore = useTokenStore();
 
@@ -99,6 +100,15 @@ const  uploadSuccess = (result) => {
   //img就是后台响应的数据，格式为：{code:状态码，message：提示信息，data: 图片的存储地址}
   imageModel.value.initialImg=result.data
   console.log(result.data)
+}
+//绑定查看诊断结果的跳转页面
+const Diagnosisresult = (row)=>{
+  router.push({
+    path:'/doctor/diagnosisResult',
+    query: {
+      id: row.id
+    }
+  })
 }
 
 </script>
@@ -129,8 +139,8 @@ const  uploadSuccess = (result) => {
       <el-table-column label="诊断状态" prop="diagnosisState" ></el-table-column>
       <el-table-column label="诊断操作" >
         <template #default="scope">
-          <el-button class="diagnosis" type="primary" v-if="(scope.row.diagnosisState)==='已诊断'">查看诊断结果</el-button>
-          <el-button class="result"  type="primary"  v-if="(scope.row.diagnosisState)==='未诊断'">一键诊断</el-button>
+          <el-button class="diagnosis" type="primary" v-if="(scope.row.diagnosisState)==='已诊断'" @click="Diagnosisresult(scope.row)">查看诊断结果</el-button>
+          <el-button class="result"  type="primary"  v-if="(scope.row.diagnosisState)==='未诊断'" @click="Diagnosisresult(scope.row)" >一键诊断</el-button>
         </template>
       </el-table-column>
       <el-table-column label="操作" >
