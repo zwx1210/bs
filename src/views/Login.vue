@@ -78,6 +78,7 @@ const login = async () => {
   //借助路由完成页面跳转
    router.push('/')
 
+
 }
 
 </script>
@@ -86,8 +87,11 @@ const login = async () => {
   <el-row class="login-page">
     <el-col :span="12" class="bg"></el-col>
     <el-col :span="6" :offset="3" class="form">
+      <el-image class="logo" style="height: 60px;width: 283px" :src="'https://eye-ground.oss-cn-beijing.aliyuncs.com/logo.png'"  />
+
       <!-- 注册表单 -->
       <el-form ref="form" size="large" autocomplete="off" v-if="isRegister" :model="registerData" :rules="registerDataRules">
+
         <el-form-item>
           <h1>注册</h1>
         </el-form-item>
@@ -150,7 +154,7 @@ const login = async () => {
   background-color: #fff;
 
   .bg {
-    background: url('@/assets/logo2.png') no-repeat 60% 57% / 300px auto,
+    background:
     url('@/assets/login_bg (2).png') no-repeat center / cover;
     border-radius: 0 20px 20px 0;
   }
@@ -181,5 +185,8 @@ const login = async () => {
       justify-content: space-between;
     }
   }
+}
+.logo{
+margin-bottom: 20px;
 }
 </style>

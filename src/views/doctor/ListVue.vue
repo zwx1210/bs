@@ -10,7 +10,7 @@ const list = ref()
 
 //异步函数
 //获取所有眼底图像数据
-import {listService, addService, deleteService} from '@/api/doctor.js'
+import {listService, addService, deleteService, diagnosisService} from '@/api/doctor.js'
 import {ElMessage, ElMessageBox} from "element-plus";
 const getList = async () => {
   let result = await listService();
@@ -100,15 +100,23 @@ const  uploadSuccess = (result) => {
   //img就是后台响应的数据，格式为：{code:状态码，message：提示信息，data: 图片的存储地址}
   imageModel.value.initialImg=result.data
   console.log(result.data)
+
+
 }
+
+import {useIDStore} from "@/stores/id.js";
+const IDStore = useIDStore();
+
 //绑定查看诊断结果的跳转页面
 const Diagnosisresult = (row)=>{
+  IDStore.setID(row.id)
   router.push({
     path:'/doctor/diagnosisResult',
     query: {
       id: row.id
     }
   })
+
 }
 
 </script>

@@ -21,7 +21,12 @@ export const deleteService = (id) => {
 
 //跨组件显示指定图像数据的诊断信息
 
-export const diagnosisService = (id) => {
+export let diagnosisService = (id) => {
 
     return request.get('/doctor/diagnosisResult?id='+id)
+}
+
+export let evaluateService = (imageModel) => {
+
+    return request.put('/doctor/evaluate',imageModel)
 }
