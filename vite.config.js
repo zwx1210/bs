@@ -16,6 +16,11 @@ export default defineConfig({
   //配置代理
   server: {
     proxy: {
+      '/apiPython':{
+        target: 'http://localhost:8001', // 后端服务器地址(注意测试用例与实际程序是不一样的)
+        changeOrigin: true, // 是否改变请求域名
+        rewrite: (path) => path.replace(/^\/apiPython/, '')//将原有请求路径中的api替换为''
+      },
       '/api': {
         target: 'http://localhost:8000', // 后端服务器地址(注意测试用例与实际程序是不一样的)
         changeOrigin: true, // 是否改变请求域名

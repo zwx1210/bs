@@ -7,6 +7,7 @@ import { ref } from 'vue'
 import {Plus} from '@element-plus/icons-vue'
 
 const list = ref()
+const searchlist =ref()
 
 //异步函数
 //获取所有眼底图像数据
@@ -119,18 +120,105 @@ const Diagnosisresult = (row)=>{
 
 }
 
+
+const searchID=ref('')
+//用户搜索时选中的诊断状态
+const diagnosisState=ref('')
+
+//用户搜索时选中的反馈状态
+const feedbackState=ref('')
+
+
+//分页条数据模型
+const pageNum = ref(1)//当前页
+const total = ref(20)//总条数
+const pageSize = ref(5)//每页条数
+//当每页条数发生了变化，调用此函数
+
+const onSizeChange = (size) => {
+  pageSize.value = size
+  searchList()
+}
+//当前页码发生变化，调用此函数
+const onCurrentChange = (num) => {
+  pageNum.value = num
+  searchList()
+}
+
+
+
+
+
+import { searchService } from '@/api/doctor.js'
+const searchList = async () => {
+  let params = {
+    pageNum: pageNum.value,
+    pageSize: pageSize.value,
+    searchID:searchID.value?searchID.value:null,
+    diagnosisState: diagnosisState.value ? diagnosisState.value : null,
+    feedbackState: feedbackState.value ? feedbackState.value : null
+  }
+  let result = await searchService(params);
+  searchlist.value = result.data.items
+  console.log("seachlist")
+  console.log(searchlist.value)
+  //渲染总条数
+  total.value=result.data.total
+
+
+}
+searchList()
+let dialogVisible=ref(false)
+
+const diagnose = (row)=>{
+  dialogVisible=true
+  let i = 0;
+  const txt = document.getElementById("txt");
+  const ds = setInterval(function () {
+    i++;
+    txt.innerHTML = i + "%";
+    // console.log(i)
+    if (i === 100) {
+      clearInterval(ds)
+    }
+  }, 50);
+
+}
 </script>
 <template>
   <el-card class="page-container">
     <template #header>
       <div class="header">
         <span >眼底图像数据管理</span>
-        <div class="extra">
-          <el-button class="upload" type="primary" @click="visibleDrawer=true" >上传眼底图像</el-button>
-        </div>
+
       </div>
     </template>
-    <el-table :data="list" style="width: 100%">
+    <div>
+      <el-form inline style="margin-left: 5%">
+      <el-form-item label="ID"> <el-input placeholder="可输入ID"  v-model="searchID"></el-input></el-form-item>
+      <el-form-item label="诊断状态：">
+        <el-select placeholder="请选择" v-model="diagnosisState"  style="width: 110px">
+          <el-option label="已诊断" value="已诊断"></el-option>
+          <el-option label="未诊断" value="未诊断"></el-option>
+        </el-select>
+      </el-form-item>
+      <el-form-item label="反馈状态：">
+        <el-select placeholder="请选择" v-model="feedbackState" style="width: 110px">
+          <el-option label="合格" value="合格"></el-option>
+          <el-option label="不合格" value="不合格"></el-option>
+        </el-select>
+      </el-form-item>
+      <el-form-item>
+        <el-button type="primary" class="button" @click="searchList">搜索</el-button>
+        <el-button class="button" @click="searchID='';diagnosisState='';feedbackState=''">重置</el-button>
+      </el-form-item>
+      <el-form-item>
+        <el-button class="upload" type="primary" @click="visibleDrawer=true"  >上传眼底图像</el-button>
+      </el-form-item>
+    </el-form>
+    </div>
+
+    <el-table :data="searchlist" style="width: 100%">
       <el-table-column label="ID"  type="index"> </el-table-column>
         <el-table-column  label="缩略图" >
 
@@ -144,11 +232,16 @@ const Diagnosisresult = (row)=>{
 
       <el-table-column label="名称" prop= "title" ></el-table-column>
       <el-table-column label="病人ID" prop= "patient" ></el-table-column>
-      <el-table-column label="诊断状态" prop="diagnosisState" ></el-table-column>
+      <el-table-column label="诊断状态" prop="diagnosisState" >
+        <template #default="scope">
+          <el-tag size="large"  class="el-tag-green"  round v-if="(scope.row.diagnosisState)==='未诊断'">{{scope.row.diagnosisState}}</el-tag>
+          <el-tag size="large" class="el-tag-red" round v-if="(scope.row.diagnosisState)==='已诊断'">{{scope.row.diagnosisState}}</el-tag>
+        </template>
+      </el-table-column>
       <el-table-column label="诊断操作" >
         <template #default="scope">
           <el-button class="diagnosis" type="primary" v-if="(scope.row.diagnosisState)==='已诊断'" @click="Diagnosisresult(scope.row)">查看诊断结果</el-button>
-          <el-button class="result"  type="primary"  v-if="(scope.row.diagnosisState)==='未诊断'" @click="Diagnosisresult(scope.row)" >一键诊断</el-button>
+          <el-button class="result"  type="primary"  v-if="(scope.row.diagnosisState)==='未诊断'" @click="dialogVisible=true" >一键诊断</el-button>
         </template>
       </el-table-column>
       <el-table-column label="操作" >
@@ -160,9 +253,38 @@ const Diagnosisresult = (row)=>{
       <template #empty>
         <el-empty description="没有数据" />
       </template>
+
+
     </el-table>
     <!-- 添加分类弹窗 -->
+    <el-dialog v-model="dialogVisible" title="AI辅助诊断" width="50%" >
+      <div class="dialog-container">
+      <div class="cont" >
+        <p id="bar"><span id="txt"></span></p>
+      </div>
+      <div >
+        <svg width="70" height="70" >
+          <circle fill="none" stroke="#6C5DD3" stroke-width="5" cx="25" cy="25" r="22" stroke-linecap="round" transform="rotate( -11.25 25 25)" class="circle" />
+          <polyline fill="none" stroke="#6C5DD3" stroke-width="5" points="11,26.75 21.625,35.5 38,17.25" stroke-linecap="round" stroke-linejoin="round" class="tick"/>
+        </svg>
+      </div>
+      </div>
+
+
+
+
+
+      <template #footer>
+        <span class="dialog-footer">
+            <el-button @click="dialogVisible = false">返回</el-button>
+            <el-button type="primary"> 查看诊断结果 </el-button>
+        </span>
+      </template>
+    </el-dialog>
     <!-- 抽屉 -->
+
+
+
     <el-drawer v-model="visibleDrawer" title="上传眼底图像" direction="rtl" size="50%">
       <!-- 添加文章表单 -->
       <el-form :model="imageModel" label-width="100px" >
@@ -189,7 +311,12 @@ const Diagnosisresult = (row)=>{
         </span>
       </template>
     </el-drawer>
+
+    <el-pagination v-model:current-page="pageNum" v-model:page-size="pageSize" :page-sizes="[3, 5 ,10, 15]"
+                   layout="jumper, total, sizes, prev, pager, next" background :total="total" @size-change="onSizeChange"
+                   @current-change="onCurrentChange" style="margin-top: 20px; justify-content: flex-end" />
   </el-card>
+
 </template>
 
 <style lang="scss" scoped>
@@ -271,8 +398,8 @@ const Diagnosisresult = (row)=>{
 .image-uploader {
   :deep() {
     .image {
-      width: 178px;
-      height: 178px;
+      width: 400px;
+      height: 400px;
       display: block;
     }
 
@@ -292,8 +419,8 @@ const Diagnosisresult = (row)=>{
     .el-icon.image-uploader-icon {
       font-size: 28px;
       color: #8c939d;
-      width: 178px;
-      height: 178px;
+      width: 400px;
+      height: 400px;
       text-align: center;
     }
   }
@@ -305,7 +432,112 @@ const Diagnosisresult = (row)=>{
   }
 }
 
+.el-tag-green{
+  background-color: rgba(162, 235, 73, 0.15);
+  color: #A2EB49;
+}
+
+.el-tag-red{
+  background-color: rgba(108, 93, 211, 0.15);
+  color: #6C5DD3;
+}
+
+.button{
+  border-color: #6C5DD3;
+  background-color: #6C5DD3;
+  color:white ;
+
+}
+.button:hover{
+  border-color: #998bff;
+  background-color: #998bff;
+
+}
+
+.cont {
+
+
+}
+
+.cont, p {
+  width: 300px;
+  height: 20px;
+  border-radius: 10px;
+  position: relative;
+
+}
+
+#bar {
+  background: linear-gradient(-90deg,blue, pink);
+  width: 0;
+  animation: prog 1 5s cubic-bezier(0.6, 0, 0.8, 1) forwards;
+}
+/*进度提示数字展示*/
+#txt {
+  position: absolute;
+  left: 250px;
+  width: 50px;
+  font: bold 18px/20px "";
+  color: #2fff00;
+}
+/*蓝色逐渐向右填充动画*/
+@keyframes prog {
+  0% {
+    width: 0px;
+  }
+  100% {
+    width: 300px;
+  }
+}
+
+
+@keyframes circleAnimation {
+  0%{
+    stroke-dashoffset: 150;
+  }
+  100%{
+    stroke-dashoffset: 0;
+  }
+
+}
+
+@keyframes tickAnimation {
+  from{
+    stroke-dashoffset: 45;
+  }
+  to{
+    stroke-dashoffset: 0;
+  }
+
+}
+
+.circle {
+  stroke-dasharray: 150;
+  stroke-dashoffset: 150;
+  animation: tickAnimation  1s  5s cubic-bezier(0.6, 0, 0.8, 1) forwards;
+
+}
+
+.tick {
+  stroke-dasharray: 45;
+  stroke-dashoffset: 45;
+  animation: tickAnimation  1s  5s cubic-bezier(0.6, 0, 0.8, 1) forwards;
+}
 
 
 
+.dialog-container {
+  display: flex; /* 使用Flexbox布局 */
+  justify-content: space-between; /* 使元素在主轴方向上均匀分布 */
+  align-items: center; /* 使元素在交叉轴居中对齐，可选 */
+  width: 100%; /* 容器宽度填满其父元素 */
+
+}
+
+.dialog-container > div {
+  flex: 1; /* 三个子元素平分剩余空间，若需固定宽度可设置具体宽度值 */
+  padding: 10px; /* 添加内边距以美观展示，可按需调整 */
+  box-sizing: border-box; /* 让内边距和边框计算在元素总宽度之内 */
+  align-items: center; /* 使元素在交叉轴居中对齐，可选 */
+}
 </style>

@@ -30,3 +30,16 @@ export let evaluateService = (imageModel) => {
 
     return request.put('/doctor/evaluate',imageModel)
 }
+
+export let getFeedbackService = (id) => {
+
+    return request.get('/doctor/diagnosisResult?id='+id)
+}
+
+export const searchService = (params)=>{
+    const tokenStore =useTokenStore();
+    //pinia 中定义响应式数据无需VALUE
+    // return request.get('/doctor/getList',{ headers: { 'Authorization': tokenStore.token } })
+    return request.get('/doctor/searchList',{ params: params })
+
+}

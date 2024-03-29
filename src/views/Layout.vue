@@ -17,21 +17,21 @@ import avatar from '@/assets/default.png'
     <!-- 左侧菜单 -->
     <el-aside width="200px">
       <div class="el-aside__logo"></div>
-      <el-menu active-text-color="#ffd04b" background-color="#6C5DD3"  text-color="#fff"
+      <el-menu active-text-color="#6C5DD3"  active-background-color="#6C5DD3" background-color="white"  text-color="#6C5DD3"
                router>
-        <el-menu-item index="/doctor/getList">
+        <el-menu-item index="/doctor/getList" class="left">
           <el-icon>
             <Management />
           </el-icon>
           <span>眼底图像数据管理</span>
         </el-menu-item >
-        <el-menu-item index="/doctor/diagnosisResult">
+        <el-menu-item index="/doctor/diagnosisResult" class="left">
           <el-icon>
             <Promotion />
           </el-icon>
           <span>智能分级诊断</span>
         </el-menu-item>
-        <el-menu-item index="/doctor/evaluateResult">
+        <el-menu-item index="/doctor/evaluateResult" class="left">
           <el-icon>
             <Promotion />
           </el-icon>
@@ -111,8 +111,15 @@ import avatar from '@/assets/default.png'
       border-right: none;
 
     }
+
   }
 
+.left:hover{
+  background-color: #998bff;
+  color: #ffffff;
+
+
+}
   .el-header {
     background-color: #fff;
     font-size: 20px;

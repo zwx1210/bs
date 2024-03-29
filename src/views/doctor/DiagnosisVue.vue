@@ -1,7 +1,10 @@
 <script setup>
 import {deleteService, diagnosisService, listService, evaluateService, addService} from "@/api/doctor.js";
 import {ElMessage} from "element-plus";
-
+import {
+  Check,
+ Close
+} from '@element-plus/icons-vue';
 import { ref } from 'vue'
 import {useIDStore} from "@/stores/id.js";
 import {Plus} from "@element-plus/icons-vue";
@@ -19,6 +22,7 @@ const visibleDrawer = ref(false)
 //声明暂存图像数据模型
 const imageModel = ref({
   id: IDStore.ID,
+  feedbackState:'',
   feedbackContent: '',
   feedbackImg:''
 })
@@ -38,9 +42,22 @@ const evaluateImage = async ()=>{
   visibleDrawer.value = false
   //再次访问后台接口，查询所有,上传后刷新界面
   imageModel.value.id=''
+  imageModel.value.feedbackState=''
   imageModel.value.feedbackContent=''
   imageModel.value.feedbackImg=''
 }
+import {useTokenStore} from "@/stores/token.js";
+const tokenStore = useTokenStore();
+
+const  uploadSuccess = (result) => {
+  //img就是后台响应的数据，格式为：{code:状态码，message：提示信息，data: 图片的存储地址}
+  imageModel.value.feedbackImg=result.data
+  console.log(result.data)
+}
+
+
+import { QuillEditor } from '@vueup/vue-quill'
+import '@vueup/vue-quill/dist/vue-quill.snow.css'
 
 </script>
 <template>
@@ -102,12 +119,25 @@ const evaluateImage = async ()=>{
       <el-button class="button" type="primary" @click="visibleDrawer=true" >评价</el-button>
 
     </div>
+
     <!-- 抽屉 -->
     <el-drawer v-model="visibleDrawer" title="评价诊断结果" direction="rtl" size="50%">
-      <!-- 添加文章表单 -->
       <el-form :model="imageModel" label-width="100px" >
-        <el-form-item label="文字反馈内容" >
-          <el-input v-model="imageModel.feedbackContent" placeholder="请输入评价内容" ></el-input>
+        <el-form-item label="诊断是否合格">
+        <el-radio-group v-model="imageModel.feedbackState" size="large">
+          <el-radio label="合格" value="合格" border />
+          <el-radio label="不合格" value="不合格" border />
+        </el-radio-group>
+        </el-form-item>
+        <el-form-item label="文字反馈内容"  >
+          <div class="editor"><quill-editor
+              theme="snow"
+              v-model:content="imageModel.feedbackContent"
+              contentType="html"
+              class="editor"
+          >
+          </quill-editor></div>
+
         </el-form-item>
 
         <el-form-item label="反馈照片">
@@ -123,7 +153,7 @@ const evaluateImage = async ()=>{
       <template #footer>
         <span class="drawer-footer">
             <el-button @click="visibleDrawer = false">取消</el-button>
-            <el-button type="primary" class="ok"  @click="addImage"> 确认 </el-button>
+            <el-button type="primary" class="ok"  @click="evaluateImage"> 确认 </el-button>
         </span>
       </template>
     </el-drawer>
@@ -145,7 +175,7 @@ const evaluateImage = async ()=>{
 .item{
   text-align: center;
   width: 50%;
-  font-size: 20px;
+  font-size: 18px;
   color:#6C5DD3;
 }
 .result{
@@ -181,7 +211,8 @@ const evaluateImage = async ()=>{
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-size: 20px;
+  font-size: 15px;
+  font-weight: bold;
   color:#6C5DD3;
 
 }
@@ -192,4 +223,44 @@ const evaluateImage = async ()=>{
   right: 1%; /* 将按钮放置在父容器右侧边缘 */
   bottom: 0; /* 将按钮放置在父容器底部边缘 */
 }
+
+.editor {
+  width: 100%;
+  :deep(.ql-editor) {
+    min-height: 400px;
+  }
+}
+
+.image-uploader {
+  :deep() {
+    .image {
+      width: 300px;
+      height: 300px;
+      display: block;
+    }
+
+    .el-upload {
+      border: 1px dashed var(--el-border-color);
+      border-radius: 6px;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      transition: var(--el-transition-duration-fast);
+    }
+
+    .el-upload:hover {
+      border-color: #6C5DD3;
+    }
+
+    .el-icon.image-uploader-icon {
+      font-size: 28px;
+      color: #8c939d;
+      width: 300px;
+      height: 300px;
+      text-align: center;
+    }
+  }
+}
+
+
 </style>
