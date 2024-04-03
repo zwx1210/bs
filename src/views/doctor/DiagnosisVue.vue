@@ -59,6 +59,13 @@ const  uploadSuccess = (result) => {
 import { QuillEditor } from '@vueup/vue-quill'
 import '@vueup/vue-quill/dist/vue-quill.snow.css'
 
+
+import {diagnoseService} from "@/apiPython/diagnose.js";
+
+
+
+
+
 </script>
 <template>
   <el-card class="page-container" shadow="always">
@@ -71,6 +78,7 @@ import '@vueup/vue-quill/dist/vue-quill.snow.css'
     <!-- 添加分类弹窗 -->
     <!-- 抽屉 -->
     <div class="container">
+
       <img :src="list.initialImg" class="image"  alt="" >
       <img :src="list.initialImg" class="image"  alt="" >
     </div>

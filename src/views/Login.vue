@@ -6,6 +6,7 @@ import {ElMessage} from "element-plus";
 const isRegister = ref(false)
 //用于注册的数据模型
 const registerData = ref({
+  role:'',
   username: '',
   password: '',
   rePassword: ''
@@ -34,7 +35,7 @@ const registerDataRules = ref({
   ]
 })
 //用于注册的事件函数（调用后台接口进行注册）
-import {registerService} from '@/api/user.js'
+import {registerService, userInfoGetService} from '@/api/user.js'
 const register =async () => {
   let result =await registerService(registerData.value);//响应式对象获取值的需要.value
   // if (result.code === 0) {
@@ -57,6 +58,9 @@ const clearRegisterData = () => {
 }
 import {useTokenStore} from "@/stores/token.js";
 const tokenStore = useTokenStore();
+
+import {useUserInfoStore} from "@/stores/user.js";
+const  userInfoStore =useUserInfoStore();
 import { loginService } from '@/api/user.js'
 
 import{useRouter} from 'vue-router'
@@ -75,11 +79,25 @@ const login = async () => {
 
  //得到的token存储到pinia
   tokenStore.setToken(result.data);
+
+  //存储用户信息到pinia
+  userInfoStore.setInfo()
+
   //借助路由完成页面跳转
    router.push('/')
 
 
 }
+import {UsernameStore} from "@/stores/user.js";
+const usernameStore = UsernameStore();
+const username = async () => {
+
+  usernameStore.setUsername(registerData.value.username);
+
+
+}
+
+
 
 </script>
 
@@ -95,6 +113,12 @@ const login = async () => {
         <el-form-item>
           <h1>注册</h1>
         </el-form-item>
+        <el-form-item prop="role">
+          <el-radio-group  placeholder="请选择角色" v-model="registerData.role" >
+            <el-radio label="专家" value="专家" border />
+            <el-radio label="工程师" value="工程师" border />
+          </el-radio-group>
+        </el-form-item>
         <el-form-item prop="username">
           <el-input :prefix-icon="User" placeholder="请输入用户名" v-model="registerData.username"></el-input>
         </el-form-item>
@@ -104,6 +128,7 @@ const login = async () => {
         <el-form-item prop="rePassword">
           <el-input :prefix-icon="Lock" type="password" placeholder="请输入再次密码" v-model="registerData.rePassword"></el-input>
         </el-form-item>
+
         <!-- 注册按钮 -->
         <el-form-item>
           <el-button class="button" @click="register" type="primary" auto-insert-space>
@@ -121,6 +146,12 @@ const login = async () => {
         <el-form-item>
           <h1>登录</h1>
         </el-form-item>
+        <el-form-item prop="role">
+          <el-radio-group  placeholder="请选择角色" v-model="registerData.role" size="large" >
+            <el-radio label="专家" value="专家" border />
+            <el-radio label="工程师" value="工程师" border />
+          </el-radio-group>
+        </el-form-item>
         <el-form-item prop="username">
           <el-input :prefix-icon="User" placeholder="请输入用户名" v-model="registerData.username"></el-input>
         </el-form-item>
@@ -135,7 +166,7 @@ const login = async () => {
         </el-form-item>
         <!-- 登录按钮 -->
         <el-form-item>
-          <el-button class="button" type="primary" auto-insert-space @click="login">登录</el-button>
+          <el-button class="button" type="primary" auto-insert-space @click="login;username">登录</el-button>
         </el-form-item>
         <el-form-item class="flex">
           <el-link type="info" :underline="false" @click="isRegister=true;clearRegisterData()">

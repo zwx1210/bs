@@ -43,3 +43,7 @@ export const searchService = (params)=>{
     return request.get('/doctor/searchList',{ params: params })
 
 }
+//一键诊断操作
+export const diagnoseService = (id) => {
+    return request.post('/doctor/diagnose?id='+id)
+}

@@ -8,6 +8,7 @@ import {Plus} from '@element-plus/icons-vue'
 
 const list = ref()
 const searchlist =ref()
+const f =ref()
 
 //异步函数
 //获取所有眼底图像数据
@@ -170,20 +171,25 @@ const searchList = async () => {
 searchList()
 let dialogVisible=ref(false)
 
-const diagnose = (row)=>{
-  dialogVisible=true
-  let i = 0;
-  const txt = document.getElementById("txt");
-  const ds = setInterval(function () {
-    i++;
-    txt.innerHTML = i + "%";
-    // console.log(i)
-    if (i === 100) {
-      clearInterval(ds)
-    }
-  }, 50);
+const diagnose = async(row)=>{
+
+  // let i = 0;
+  // const txt = document.getElementById("txt");
+  // const ds = setInterval(function () {
+  //   i++;
+  //   txt.innerHTML = i + "%";
+  //   // console.log(i)
+  //   if (i === 100) {
+  //     clearInterval(ds)
+  //   }
+  // }, 50);
+
+  let result = await diagnoseService(row.id);
+  f.value=result.data
 
 }
+
+import {diagnoseService} from "@/api/doctor.js";
 </script>
 <template>
   <el-card class="page-container">
@@ -241,7 +247,7 @@ const diagnose = (row)=>{
       <el-table-column label="诊断操作" >
         <template #default="scope">
           <el-button class="diagnosis" type="primary" v-if="(scope.row.diagnosisState)==='已诊断'" @click="Diagnosisresult(scope.row)">查看诊断结果</el-button>
-          <el-button class="result"  type="primary"  v-if="(scope.row.diagnosisState)==='未诊断'" @click="dialogVisible=true" >一键诊断</el-button>
+          <el-button class="result"  type="primary"  v-if="(scope.row.diagnosisState)==='未诊断'" @click="dialogVisible=true;diagnose(scope.row)" >一键诊断</el-button>
         </template>
       </el-table-column>
       <el-table-column label="操作" >
@@ -262,6 +268,7 @@ const diagnose = (row)=>{
       <div class="cont" >
         <p id="bar"><span id="txt"></span></p>
       </div>
+
       <div >
         <svg width="70" height="70" >
           <circle fill="none" stroke="#6C5DD3" stroke-width="5" cx="25" cy="25" r="22" stroke-linecap="round" transform="rotate( -11.25 25 25)" class="circle" />
@@ -269,11 +276,7 @@ const diagnose = (row)=>{
         </svg>
       </div>
       </div>
-
-
-
-
-
+      <div>{{f}}</div>
       <template #footer>
         <span class="dialog-footer">
             <el-button @click="dialogVisible = false">返回</el-button>
