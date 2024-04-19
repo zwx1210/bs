@@ -166,7 +166,7 @@ const username = async () => {
         </el-form-item>
         <!-- 登录按钮 -->
         <el-form-item>
-          <el-button class="button" type="primary" auto-insert-space @click="login;username">登录</el-button>
+          <el-button class="button" type="primary" auto-insert-space @click="login">登录</el-button>
         </el-form-item>
         <el-form-item class="flex">
           <el-link type="info" :underline="false" @click="isRegister=true;clearRegisterData()">

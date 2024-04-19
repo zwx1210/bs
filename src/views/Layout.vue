@@ -17,23 +17,27 @@ import {useUserInfoStore} from '@/stores/user.js'
 const userInfoStore = useUserInfoStore();
 import {ref} from 'vue'
 
-//获取个人信息
-// const getUserInf = async ()=>{
-//   let result = await userInfoGetService();
-//   //存储pinia
-//   console.log('result.data'+result.data)
-//   userInfoStore.info =result.data;
-// }
-// getUserInf()
-import {UsernameStore} from "@/stores/user.js";
-const usernameStore = UsernameStore();
-const getUserInf = async ()=>{
-  let result = await userInfoGetService(usernameStore.username);
+const userinfo =ref({
+  id:'',
+  username:'',
+  role:''
+})
 
-  console.log('result.data'+result.data)
+import {useTokenStore} from "@/stores/token.js";
+const tokenStore = useTokenStore();
+const getUserInf = async ()=>{
+  let result = await userInfoGetService(tokenStore.token);
+  userinfo.value.id =result.data.id;
+  userinfo.value.username =result.data.username;
+  userinfo.value.role =result.data.role;
 
 }
-getUserInf()
+
+
+
+getUserInf();
+
+
 </script>
 
 <template>
@@ -89,7 +93,7 @@ getUserInf()
     <el-container>
       <!-- 头部区域 -->
       <el-header>
-        <div>您好：<strong></strong></div>
+        <div>您好：<strong>{{userinfo.role+userinfo.username}}</strong></div>
         <el-dropdown placement="bottom-end">
                     <span class="el-dropdown__box">
                         <el-avatar :src="avatar" />

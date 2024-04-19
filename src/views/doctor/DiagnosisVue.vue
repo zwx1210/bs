@@ -80,7 +80,7 @@ import {diagnoseService} from "@/apiPython/diagnose.js";
     <div class="container">
 
       <img :src="list.initialImg" class="image"  alt="" >
-      <img :src="list.initialImg" class="image"  alt="" >
+      <img :src="list.diagnosisImg" class="image"  alt="" >
     </div>
     <div class="container">
       <div  class="item">原彩照</div>
@@ -95,7 +95,7 @@ import {diagnoseService} from "@/apiPython/diagnose.js";
           </div>
         </template>
         <div class="card-content">
-          这里放置卡片的具体内容...
+          {{list.classificationResult}}
         </div>
       </el-card>
 
@@ -107,7 +107,7 @@ import {diagnoseService} from "@/apiPython/diagnose.js";
         </template>
         <!-- 卡片内容 -->
         <div class="card-content">
-          这里放置卡片的具体内容...
+          请见图片.
 
         </div>
       </el-card>

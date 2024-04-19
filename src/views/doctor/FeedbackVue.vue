@@ -19,7 +19,14 @@ const tempList =ref({
 
 //异步函数
 //获取所有眼底图像数据
-import {listService, addService, deleteService, diagnosisService, getFeedbackService} from '@/api/doctor.js'
+import {
+  listService,
+  addService,
+  deleteService,
+  diagnosisService,
+  getFeedbackService,
+  evaluateService
+} from '@/api/doctor.js'
 import {ElMessage, ElMessageBox} from "element-plus";
 const getList = async () => {
   let result = await listService();
@@ -40,7 +47,13 @@ const imageModel = ref({
   initialImg:'',
 
 })
+//声明暂存图像数据模型
+const imageEvaluateModel = ref({
 
+  feedbackState:'',
+  feedbackContent: '',
+  feedbackImg:''
+})
 
 //添加分类表单校验
 const imageRules = {
@@ -167,6 +180,8 @@ const onCurrentChange = (num) => {
 
 
 
+
+
 import { searchService } from '@/api/doctor.js'
 const searchList = async () => {
   let params = {
@@ -186,6 +201,44 @@ const searchList = async () => {
 
 }
 searchList()
+
+
+//添加分类表单校验
+const evaluateRules = {
+  feedbackContent: [
+    { required: true, message: '请输入评价内容', trigger: 'blur' },
+  ],
+  feedbackImg: [
+    { required: true, message: '请上传反馈图片', trigger: 'blur' },
+  ]}
+
+
+const visibleEvaluateDrawer = ref(false)
+const evaluateImage = async ()=>{
+  let result = evaluateService(imageEvaluateModel.value);
+  ElMessage.success(result.message? result.message:'评价成功')
+  //隐藏弹窗
+  visibleEvaluateDrawer.value = false
+  //再次访问后台接口，查询所有,上传后刷新界面
+  imageEvaluateModel.value.id=tempID.value
+  imageEvaluateModel.value.feedbackState=''
+  imageEvaluateModel.value.feedbackContent=''
+  imageEvaluateModel.value.feedbackImg=''
+}
+
+
+const  evaluateUploadSuccess = (result) => {
+  //img就是后台响应的数据，格式为：{code:状态码，message：提示信息，data: 图片的存储地址}
+  imageModel.value.feedbackImg=result.data
+  console.log(result.data)
+}
+
+
+import { QuillEditor } from '@vueup/vue-quill'
+import '@vueup/vue-quill/dist/vue-quill.snow.css'
+
+
+
 
 </script>
 <template>
@@ -234,9 +287,17 @@ searchList()
           <el-tag size="large" class="el-tag-red" round v-if="(scope.row.diagnosisState)==='已诊断'">{{scope.row.diagnosisState}}</el-tag>
         </template>
       </el-table-column>
+      <el-table-column label="反馈状态" prop="diagnosisState" >
+        <template #default="scope">
+          <el-tag size="large"  class="el-tag-green"  round v-if="(scope.row.feedbackState)==='合格'">{{scope.row.feedbackState}}</el-tag>
+          <el-tag size="large" class="el-tag-red" round v-if="(scope.row.feedbackState)==='不合格'">{{scope.row.feedbackState}}</el-tag>
+          <el-tag size="large"  class="el-tag-blue"  round v-if="(scope.row.feedbackState)==='未知'">{{scope.row.feedbackState}}</el-tag>
+        </template>
+      </el-table-column>
       <el-table-column label="操作" >
         <template #default="scope">
           <el-button class="diagnosis" type="primary"  @click="tempID=scope.row.id;getEvaluateResult();visibleDrawer=true">查看评价反馈</el-button>
+<!--          <el-button class="evaluate"  type="primary" @click="tempID=scope.row.id;visibleEvaluateDrawer=true" >再次评价  </el-button>-->
         </template>
       </el-table-column>
       <el-table-column label="删除操作" >
@@ -251,6 +312,7 @@ searchList()
     </el-table>
     <!-- 评价内容弹窗 -->
     <!-- 抽屉 -->
+
     <el-drawer v-model="visibleDrawer" title="评价诊断结果" direction="rtl" size="50%">
 
 <!--      <el-form :model="tempList" label-width="100px" >-->
@@ -292,7 +354,7 @@ searchList()
     </el-form-item>
     <div class="container">
       <img :src="tempList.initialImg" class="image"  alt="" >
-      <img :src="tempList.feedbackImg" class="image"  alt="" >
+      <img :src="tempList.diagnosisImg" class="image"  alt="" >
       <img :src="tempList.feedbackImg" class="image"  alt="" >
     </div>
     <div class="container">
@@ -310,7 +372,46 @@ searchList()
       </template>
 
     </el-drawer>
+    <el-drawer v-model="visibleEvaluateDrawer" title="评价诊断结果" direction="rtl" size="50%">
+      <el-form :model="imageModel" label-width="100px" >
+        <el-form-item label="诊断是否合格">
+          <el-radio-group v-model="imageModel.feedbackState" size="large">
+            <el-radio label="合格" value="合格" border />
+            <el-radio label="不合格" value="不合格" border />
+          </el-radio-group>
+        </el-form-item>
+        <el-form-item label="文字反馈内容"  >
+          <div class="editor"><quill-editor
+              theme="snow"
+              v-model:content="imageModel.feedbackContent"
+              contentType="html"
+              class="editor"
+          >
+          </quill-editor></div>
 
+        </el-form-item>
+
+        <el-form-item label="反馈照片">
+          <el-upload class="image-uploader" :auto-upload="true" :show-file-list="false"
+                     action="/api/upload" name="file" :headers="{'Authorization':tokenStore.token}" :on-success="uploadSuccess">
+            <img v-if="imageModel.feedbackImg" :src="imageModel.feedbackImg" class="image"  alt=""/>
+            <el-icon v-else class="image-uploader-icon">
+              <Plus />
+            </el-icon>
+          </el-upload>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <span class="drawer-footer">
+            <el-button @click="visibleDrawer = false">取消</el-button>
+            <el-button type="primary" class="ok"  @click="evaluateImage"> 确认 </el-button>
+        </span>
+      </template>
+    </el-drawer>
+
+    <el-pagination v-model:current-page="pageNum" v-model:page-size="pageSize" :page-sizes="[3, 5 ,10, 15]"
+                   layout="jumper, total, sizes, prev, pager, next" background :total="total" @size-change="onSizeChange"
+                   @current-change="onCurrentChange" style="margin-top: 20px; justify-content: flex-end" />
   </el-card>
 
 </template>
@@ -334,8 +435,11 @@ searchList()
   }
 
   .diagnosis{
+
     border-color: #6C5DD3;
     background-color: #6C5DD3;
+    margin-top: 2%;
+
 
   }
   .diagnosis:hover{
@@ -352,6 +456,19 @@ searchList()
     border-color: #96ff53;
     background-color: #96ff53;
   }
+
+  .evaluate{
+    border-color: #57c057;
+    background-color: #57c057;
+    margin-top: 3%;
+    margin-bottom: 3%;
+
+  }
+  .evaluate:hover{
+    border-color: #96ff53;
+    background-color: #96ff53;
+  }
+
 
   .delete{
     border-color: red;

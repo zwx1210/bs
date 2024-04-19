@@ -19,7 +19,7 @@ export const loginService = (loginData)=>{
 }
 
 //获取个人信息
-export const userInfoGetService = (username)=>{
-    return request.get('/user/userInformation?username='+username)
+export const userInfoGetService = (token)=>{
+    return request.get('/user/userInfo',token)
 
 }

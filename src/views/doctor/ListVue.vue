@@ -30,7 +30,8 @@ const visibleDrawer = ref(false)
 const imageModel = ref({
   title: '',
   patient: '',
-  initialImg:''//暂时作文本
+  initialImg:'',
+  classificationResult:''
 })
 //添加分类表单校验
 const imageRules = {
@@ -173,23 +174,53 @@ let dialogVisible=ref(false)
 
 const diagnose = async(row)=>{
 
-  // let i = 0;
-  // const txt = document.getElementById("txt");
-  // const ds = setInterval(function () {
-  //   i++;
-  //   txt.innerHTML = i + "%";
-  //   // console.log(i)
-  //   if (i === 100) {
-  //     clearInterval(ds)
-  //   }
-  // }, 50);
+
 
   let result = await diagnoseService(row.id);
   f.value=result.data
 
+
 }
 
+
 import {diagnoseService} from "@/api/doctor.js";
+import {CountUp} from "countup.js";
+
+
+const directive = {
+  inserted(el, binding) {
+    // 获取到需要动态变化的数值
+    let finalNum = el.innerText;
+    let count = 0;
+    let timer = setInterval(() => {
+      count++;
+      el.innerText = count;
+      if (count > finalNum) {
+        //  避免count大于finalNum最终数字显示不对
+        count = finalNum;
+        el.innerText = count;
+        // 清空定时器
+        clearInterval(timer);
+        timer = null;
+      }
+    }, 10);
+  },
+};
+
+
+
+const options = {
+  duration: 20,
+};
+
+
+
+let demo = new CountUp('percentage', 100, options);
+if (!demo.error) {
+  demo.start();
+} else {
+  console.error(demo.error);
+}
 </script>
 <template>
   <el-card class="page-container">
@@ -214,6 +245,7 @@ import {diagnoseService} from "@/api/doctor.js";
           <el-option label="不合格" value="不合格"></el-option>
         </el-select>
       </el-form-item>
+
       <el-form-item>
         <el-button type="primary" class="button" @click="searchList">搜索</el-button>
         <el-button class="button" @click="searchID='';diagnosisState='';feedbackState=''">重置</el-button>
@@ -225,14 +257,12 @@ import {diagnoseService} from "@/api/doctor.js";
     </div>
 
     <el-table :data="searchlist" style="width: 100%">
-      <el-table-column label="ID"  type="index"> </el-table-column>
+      <el-table-column label="ID"  prop="id"> </el-table-column>
         <el-table-column  label="缩略图" >
-
             <template #default="scope">
               <!--调用图片组件 -->
               <el-image :src="scope.row.initialImg" fit="contain"></el-image>
             </template>
-
         </el-table-column>
 
 
@@ -244,12 +274,20 @@ import {diagnoseService} from "@/api/doctor.js";
           <el-tag size="large" class="el-tag-red" round v-if="(scope.row.diagnosisState)==='已诊断'">{{scope.row.diagnosisState}}</el-tag>
         </template>
       </el-table-column>
+      <el-table-column label="反馈状态" prop="diagnosisState" >
+        <template #default="scope">
+          <el-tag size="large"  class="el-tag-green"  round v-if="(scope.row.feedbackState)==='合格'">{{scope.row.feedbackState}}</el-tag>
+          <el-tag size="large"  class="el-tag-blue"  round v-if="(scope.row.feedbackState)==='未知'">{{scope.row.feedbackState}}</el-tag>
+          <el-tag size="large" class="el-tag-red" round v-if="(scope.row.feedbackState)==='不合格'">{{scope.row.feedbackState}}</el-tag>
+        </template>
+      </el-table-column>
       <el-table-column label="诊断操作" >
         <template #default="scope">
           <el-button class="diagnosis" type="primary" v-if="(scope.row.diagnosisState)==='已诊断'" @click="Diagnosisresult(scope.row)">查看诊断结果</el-button>
-          <el-button class="result"  type="primary"  v-if="(scope.row.diagnosisState)==='未诊断'" @click="dialogVisible=true;diagnose(scope.row)" >一键诊断</el-button>
+          <el-button class="result"  type="primary"  v-if="(scope.row.diagnosisState)==='未诊断'" @click="dialogVisible=true;diagnose(scope.row);" >一键诊断</el-button>
         </template>
       </el-table-column>
+
       <el-table-column label="操作" >
 
         <template #default="{ row }">
@@ -263,24 +301,26 @@ import {diagnoseService} from "@/api/doctor.js";
 
     </el-table>
     <!-- 添加分类弹窗 -->
-    <el-dialog v-model="dialogVisible" title="AI辅助诊断" width="50%" >
-      <div class="dialog-container">
+    <el-dialog v-model="dialogVisible" title="AI辅助诊断" width="30%" >
+<div class="dialog-container" ></div>
+        <span class="emoji">诊断中，请耐心等待~😊😊😊</span>
       <div class="cont" >
-        <p id="bar"><span id="txt"></span></p>
+        <p id="bar"></p>
       </div>
-
-      <div >
+      <span id="percentage"></span>
+      <div class="complete">
         <svg width="70" height="70" >
-          <circle fill="none" stroke="#6C5DD3" stroke-width="5" cx="25" cy="25" r="22" stroke-linecap="round" transform="rotate( -11.25 25 25)" class="circle" />
-          <polyline fill="none" stroke="#6C5DD3" stroke-width="5" points="11,26.75 21.625,35.5 38,17.25" stroke-linecap="round" stroke-linejoin="round" class="tick"/>
+
+          <circle fill="none" stroke="#6C5DD3" stroke-width="5" cx="30" cy="30" r="22" stroke-linecap="round" transform="rotate( -11.25 30 30)" class="circle" />
+          <polyline fill="none" stroke="#6C5DD3" stroke-width="5" points="16,32.75 26.625,40.5 43,22.25" stroke-linecap="round" stroke-linejoin="round" class="tick"/>
         </svg>
       </div>
-      </div>
+<!--      <CountUp :end="100" :duration="20"  />-->
       <div>{{f}}</div>
       <template #footer>
         <span class="dialog-footer">
-            <el-button @click="dialogVisible = false">返回</el-button>
-            <el-button type="primary"> 查看诊断结果 </el-button>
+            <el-button @click="dialogVisible = false;getList()">返回</el-button>
+            <el-button  class="button" type="primary" @click=""> 查看诊断结果 </el-button>
         </span>
       </template>
     </el-dialog>
@@ -466,7 +506,8 @@ import {diagnoseService} from "@/api/doctor.js";
   width: 300px;
   height: 20px;
   border-radius: 10px;
-  position: relative;
+  margin: 5% 10%;
+
 
 }
 
@@ -477,9 +518,7 @@ import {diagnoseService} from "@/api/doctor.js";
 }
 /*进度提示数字展示*/
 #txt {
-  position: absolute;
-  left: 250px;
-  width: 50px;
+
   font: bold 18px/20px "";
   color: #2fff00;
 }
@@ -530,17 +569,15 @@ import {diagnoseService} from "@/api/doctor.js";
 
 
 .dialog-container {
-  display: flex; /* 使用Flexbox布局 */
-  justify-content: space-between; /* 使元素在主轴方向上均匀分布 */
-  align-items: center; /* 使元素在交叉轴居中对齐，可选 */
-  width: 100%; /* 容器宽度填满其父元素 */
+  width:100%
 
 }
-
-.dialog-container > div {
-  flex: 1; /* 三个子元素平分剩余空间，若需固定宽度可设置具体宽度值 */
-  padding: 10px; /* 添加内边距以美观展示，可按需调整 */
-  box-sizing: border-box; /* 让内边距和边框计算在元素总宽度之内 */
-  align-items: center; /* 使元素在交叉轴居中对齐，可选 */
+.emoji{
+  margin: 10% 30%;
+  width: 50%;
+}
+.complete{
+  width: 100%;
+  margin: 2% 40%;
 }
 </style>
