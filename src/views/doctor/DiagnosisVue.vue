@@ -83,8 +83,8 @@ import {diagnoseService} from "@/apiPython/diagnose.js";
       <img :src="list.diagnosisImg" class="image"  alt="" >
     </div>
     <div class="container">
-      <div  class="item">原彩照</div>
-      <div  class="item">分割彩照</div>
+      <div  class="item">眼底图像</div>
+      <div  class="item">分割结果</div>
     </div>
     <div class="container">
       <el-card :body-style="{ borderRadius: '0px' }" class="result">
@@ -99,7 +99,7 @@ import {diagnoseService} from "@/apiPython/diagnose.js";
         </div>
       </el-card>
 
-      <el-card :body-style="{ borderRadius: '10px' }" class="result">
+      <el-card :body-style="{ borderRadius: '10px' }" class="centerResult">
         <template #header>
           <div class="name">
             <span >分割结果 </span>
@@ -111,17 +111,21 @@ import {diagnoseService} from "@/apiPython/diagnose.js";
 
         </div>
       </el-card>
-      <el-card :body-style="{ borderRadius: '10px' }" class="result">
+      <el-card :body-style="{ borderRadius: '10px' }" class="rightResult">
         <!-- 卡片内容 -->
         <template #header >
           <div class="name">
-            <span >病变预测</span>
+            <span >病变预测与建议</span>
           </div>
         </template>
-        <div class="card-content">
-          这里放置卡片的具体内容...
-
-
+        <div class="card-content" v-if="list.classificationResult==='高度近视'">
+          高度近视患者发生眼底病变的概率大约在15%左右，通过定期的眼科检查、良好的用眼习惯、适当的光学矫正和必要的手术干预，可以有效管理和降低眼底病变风险。
+        </div>
+        <div class="card-content" v-if="list.classificationResult==='病理性近视'">
+          病理性近视伴随着眼轴异常增长和其他严重的眼部并发症。对于病理性近视患者，眼底病变的可能性显著增加，具体包括视网膜后脱离，脉络膜萎缩，视神经萎缩，黄斑病变，后巩膜葡萄肿，豹纹状眼底等病变。通过定期监测，可以及早发现并处理病变，减少视力损失的风险。
+        </div>
+        <div class="card-content" v-if="list.classificationResult==='健康眼底'">
+          正常视力请保持眼底健康，坚持合理的用眼习惯和生活习惯，定期检测是否有高血压等慢性疾病，健康饮食，定期检查。如果有任何视觉变化或不适，应及时就医咨询。
         </div>
       </el-card>
       <el-button class="button" type="primary" @click="visibleDrawer=true" >评价</el-button>
@@ -188,10 +192,28 @@ import {diagnoseService} from "@/apiPython/diagnose.js";
 }
 .result{
   text-align: center;
-  width: 31%;
+  width: 15%;
   border-radius: 20px;
-  height: 15vh;
+  height: 20vh;
   margin: 1%;
+
+}
+.centerResult{
+  text-align: center;
+  width: 15%;
+  border-radius: 20px;
+  height: 20vh;
+  margin: 1%;
+
+}
+.rightResult{
+  text-align: left;
+  text-indent: 2rem;
+  width: 60%;
+  border-radius: 20px;
+  height: 20vh;
+  margin: 1%;
+
 
 }
 .image{

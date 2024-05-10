@@ -118,7 +118,7 @@ getUserInf();
         </div>
       </el-main>
       <!-- 底部区域 -->
-      <el-footer>基于tf的眼底图像辅助准段系统 ©2024 Created by ZWX</el-footer>
+      <el-footer>面向眼底图像的近视分级诊断系统©2024 Created by ZWX</el-footer>
     </el-container>
   </el-container>
 </template>
